@@ -128,9 +128,9 @@ bookme/
 │   │   ├── ci.yml               # Lint, testes e build em cada PR
 │   │   └── cd.yml               # Deploy automático na main
 │   ├── ISSUE_TEMPLATE/
-│   │   ├── bug_report.md
-│   │   ├── feature_request.md
-│   │   └── task.md
+│   │   ├── bug_report.yml
+│   │   ├── feature_request.yml
+│   │   └── task.yml
 │   └── PULL_REQUEST_TEMPLATE.md
 │
 ├── apps/
