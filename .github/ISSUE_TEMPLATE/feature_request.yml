@@ -1,0 +1,59 @@
+name: Feature Request
+description: Sugira uma nova funcionalidade ou melhoria para o sistema
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Antes de abrir, verifique se já existe uma Issue similar em aberto. Quanto mais contexto você fornecer, mais fácil será avaliar e priorizar.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema esta feature resolve?
+      description: Descreva a situação atual e por que ela é um problema. Ex — "Como prestador, preciso fazer X mas hoje sou obrigado a Y, o que causa Z."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução proposta
+      description: Descreva como você imagina que essa funcionalidade deveria funcionar do ponto de vista do usuário.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Você pensou em outras formas de resolver esse problema? Por que a solução proposta é melhor?
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Onde essa mudança se encaixa?
+      options:
+        - Backend (API)
+        - Frontend (Web)
+        - Ambos
+        - Infraestrutura / DevOps
+        - Documentação
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Qual a importância dessa feature para você?
+      options:
+        - Alta — bloqueia um fluxo principal
+        - Média — melhora significativa de experiência
+        - Baixa — seria legal ter, mas não urgente
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto adicional
+      description: Screenshots, referências, links para sistemas similares, etc.

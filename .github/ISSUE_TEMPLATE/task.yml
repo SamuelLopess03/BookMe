@@ -1,0 +1,46 @@
+name: Task
+description: Tarefa técnica de desenvolvimento (feat, refactor, chore, docs, test)
+labels: ["task"]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Tipo
+      options:
+        - feat — Nova funcionalidade
+        - fix — Correção de bug
+        - refactor — Refatoração
+        - test — Testes
+        - docs — Documentação
+        - chore — Manutenção / deps
+        - ci — CI/CD
+        - perf — Performance
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição
+      description: O que precisa ser feito? Por quê?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: Como saberemos que a tarefa está concluída?
+      placeholder: |
+        - [ ] Endpoint POST /appointments retorna 201 com dados do agendamento
+        - [ ] Testes unitários do AppointmentService passando
+        - [ ] Testes de integração da rota passando
+        - [ ] Swagger atualizado
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notas técnicas
+      description: Decisões, referências, dependências ou contexto adicional.

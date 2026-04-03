@@ -1,0 +1,40 @@
+name: Bug Report
+description: Reporte um comportamento inesperado ou incorreto
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Obrigado por reportar! Preencha o máximo de informações possível para facilitar a investigação.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição do bug
+      description: Descreva de forma clara e concisa o que está acontecendo de errado.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+      description: O que deveria acontecer?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. Acesse '...'
+        2. Clique em '...'
+        3. Veja o erro
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto adicional
+      description: Logs de erro, screenshots, versão do Node, browser, etc.
