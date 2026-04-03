@@ -1,0 +1,81 @@
+# ── Dependências ──────────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ── Build outputs ─────────────────────────────────────
+dist/
+build/
+out/
+.next/
+.turbo/
+
+# ── Variáveis de ambiente ─────────────────────────────
+# NUNCA versionar o .env real — apenas o .env.example
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# ── Cobertura de testes ───────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Cache e temporários ───────────────────────────────
+.cache/
+tmp/
+temp/
+*.tmp
+*.temp
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Drizzle ORM ───────────────────────────────────────
+# Manter as migrations versionadas, ignorar apenas o cache
+drizzle/meta/_journal.json
+
+# ── TypeScript ────────────────────────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ── Editores e IDEs ───────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Sistema operacional ───────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# ── Docker ────────────────────────────────────────────
+# Volumes locais do Docker (se mapeados em subpastas)
+docker-volumes/
+
+# ── Terraform ─────────────────────────────────────────
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.backup
+infra/terraform/*.tfvars
+# Manter o .tfvars.example versionado
+!infra/terraform/*.tfvars.example
+
+# ── Relatórios e diagnósticos ─────────────────────────
+*.heapsnapshot
+*.cpuprofile
