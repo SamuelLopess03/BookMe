@@ -1,5 +1,5 @@
 # SDD — Modelagem do Banco de Dados
-## AgendaFácil · Spec Driven Development
+## BookMe · Spec Driven Development
 
 **Documento:** `docs/specs/01-database-modeling.md`  
 **Status:** Draft  
@@ -10,7 +10,7 @@
 
 ## 1. Objetivo
 
-Este documento especifica de forma completa e implementável a modelagem do banco de dados relacional do AgendaFácil usando PostgreSQL 16 e Drizzle ORM. Ele serve como **fonte de verdade** para a implementação do schema, devendo ser lido antes de escrever qualquer linha de código de banco.
+Este documento especifica de forma completa e implementável a modelagem do banco de dados relacional do BookMe usando PostgreSQL 16 e Drizzle ORM. Ele serve como **fonte de verdade** para a implementação do schema, devendo ser lido antes de escrever qualquer linha de código de banco.
 
 Ao final da leitura deste documento, você deve ser capaz de:
 - Entender **por que** cada tabela e coluna existe
@@ -159,7 +159,7 @@ export const tenants = pgTable('tenants', {
 
   /**
    * Identificador único na URL pública do prestador.
-   * Exemplo: "joao-barbearia" → agendafacil.com.br/joao-barbearia
+   * Exemplo: "joao-barbearia" → bookme.com.br/joao-barbearia
    * Regras: lowercase, apenas letras, números e hífens. Sem espaços.
    * Gerado automaticamente a partir do nome no registro, editável pelo prestador.
    */
