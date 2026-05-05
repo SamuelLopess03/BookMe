@@ -133,6 +133,15 @@ export const changedByEnum = pgEnum('changed_by', [
   'tenant',
   'system',
 ])
+
+/**
+ * Status de processamento para chaves de idempotência (ADR-016).
+ */
+export const idempotencyKeyStatusEnum = pgEnum('idempotency_key_status', [
+  'processing',
+  'completed',
+  'failed',
+])
 ```
 
 ---
@@ -498,9 +507,9 @@ export type NewAvailabilityBlock = typeof availabilityBlocks.$inferInsert
 // apps/api/src/infra/database/schema/appointments.ts
 
 import {
-  pgTable, uuid, varchar, text, timestamp, index
+  pgTable, uuid, varchar, text, timestamp, index, uniqueIndex
 } from 'drizzle-orm/pg-core'
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import { appointmentStatusEnum, cancelledByEnum } from './enums'
 
 export const appointments = pgTable('appointments', {
@@ -574,6 +583,14 @@ export const appointments = pgTable('appointments', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
   tenantIdx: index('appointments_tenant_id_idx').on(table.tenantId),
+
+  /**
+   * Garante que não haja duplo agendamento no mesmo horário (ADR-009).
+   * Cria lock seguro de banco ignorando registros já cancelados/rejeitados.
+   */
+  uniqueSlotIdx: uniqueIndex('appointments_unique_slot_idx')
+    .on(table.tenantId, table.scheduledAt)
+    .where(sql`status NOT IN ('cancelled', 'rejected')`),
 
   /**
    * Índice mais importante do sistema.
@@ -689,7 +706,53 @@ export type NewAppointmentAuditLog = typeof appointmentAuditLog.$inferInsert
 
 ---
 
-### 5.9 · Arquivo de Índice do Schema
+### 5.9 · Tabela `idempotency_keys` (ADR-016)
+
+```typescript
+// apps/api/src/infra/database/schema/idempotency-keys.ts
+
+import { pgTable, uuid, varchar, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
+import { relations, sql } from 'drizzle-orm'
+import { idempotencyKeyStatusEnum } from './enums'
+
+export const idempotencyKeys = pgTable('idempotency_keys', {
+  key: uuid('key').primaryKey(),
+
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id, { onDelete: 'cascade' }),
+
+  endpoint: varchar('endpoint', { length: 200 }).notNull(),
+  
+  status: idempotencyKeyStatusEnum('status').notNull(),
+  
+  response: jsonb('response'),
+
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+}, (table) => ({
+  /**
+   * Índice para limpar as chaves expiradas que já foram completadas.
+   */
+  expiresAtIdx: index('idempotency_keys_expires_at_idx')
+    .on(table.expiresAt)
+    .where(sql`status = 'completed'`),
+}))
+
+export const idempotencyKeysRelations = relations(idempotencyKeys, ({ one }) => ({
+  tenant: one(tenants, {
+    fields:     [idempotencyKeys.tenantId],
+    references: [tenants.id],
+  }),
+}))
+
+export type IdempotencyKey    = typeof idempotencyKeys.$inferSelect
+export type NewIdempotencyKey = typeof idempotencyKeys.$inferInsert
+```
+
+---
+
+### 5.10 · Arquivo de Índice do Schema
 
 ```typescript
 // apps/api/src/infra/database/schema/index.ts
@@ -704,6 +767,7 @@ export * from './availability-schedules'
 export * from './availability-blocks'
 export * from './appointments'
 export * from './appointment-audit-log'
+export * from './idempotency-keys'
 ```
 
 ---
@@ -859,6 +923,7 @@ await db.execute(
 | `refresh_tokens_expires_at_idx` | refresh_tokens | expires_at | Job de limpeza de tokens expirados |
 | `avail_schedules_tenant_day_idx` | availability_schedules | tenant_id, day_of_week | Cálculo de slots: "qual schedule do tenant para segunda?" |
 | `avail_blocks_tenant_range_idx` | availability_blocks | tenant_id, start_at, end_at | "Há bloqueios que intersectam 2025-06-15?" |
+| `appointments_unique_slot_idx` | appointments | tenant_id, scheduled_at | UNIQUE index para evitar double booking no mesmo slot (ADR-009) |
 | `appointments_tenant_scheduled_at_idx` | appointments | tenant_id, scheduled_at | Dashboard: agenda do dia/semana, cálculo de conflitos |
 | `appointments_pending_idx` | appointments | tenant_id, scheduled_at | Dashboard: agendamentos pendentes (partial index) |
 | `appointments_cancellation_token_idx` | appointments | cancellation_token | `DELETE /public/appointments/:token` — lookup pelo token |
@@ -866,6 +931,7 @@ await db.execute(
 | `appointments_reminder_idx` | appointments | status, scheduled_at | Job de lembrete: confirmados com horário em ~24h |
 | `audit_log_appointment_id_idx` | appointment_audit_log | appointment_id | Histórico de um agendamento específico |
 | `audit_log_tenant_id_idx` | appointment_audit_log | tenant_id | RLS e queries de auditoria por tenant |
+| `idempotency_keys_expires_at_idx` | idempotency_keys | expires_at | Job de limpeza das chaves expiradas e completadas (ADR-016) |
 
 ---
 
@@ -883,7 +949,8 @@ apps/api/src/infra/database/
 │   ├── availability-schedules.ts
 │   ├── availability-blocks.ts
 │   ├── appointments.ts
-│   └── appointment-audit-log.ts
+│   ├── appointment-audit-log.ts
+│   └── idempotency-keys.ts
 │
 ├── migrations/                      ← Geradas pelo Drizzle Kit (não editar manualmente)
 │   └── 0000_initial_schema.sql
@@ -1027,7 +1094,7 @@ Use esta lista como Issues no GitHub (uma Issue por item de nível 2):
 - [ ] **#DB-07** Criar `schema/refresh-tokens.ts`
 - [ ] **#DB-08** Criar `schema/services.ts`
 - [ ] **#DB-09** Criar `schema/availability-schedules.ts` e `schema/availability-blocks.ts`
-- [ ] **#DB-10** Criar `schema/appointments.ts` e `schema/appointment-audit-log.ts`
+- [ ] **#DB-10** Criar `schema/appointments.ts`, `schema/appointment-audit-log.ts` e `schema/idempotency-keys.ts`
 - [ ] **#DB-11** Criar `schema/index.ts` com todos os re-exports
 
 ### Fase 3 — Migration e RLS
@@ -1100,3 +1167,5 @@ const history = await db
 - [PostgreSQL — TIMESTAMPTZ vs TIMESTAMP](https://www.postgresql.org/docs/current/datatype-datetime.html)
 - ADR-003: Multi-tenancy por Row-Level com tenant_id → `docs/adr/0003-multitenancy-row-level.md`
 - ADR-005: Drizzle ORM em vez de Prisma → `docs/adr/0005-drizzle-orm.md`
+- ADR-009: Controle de Concorrência em Agendamentos → `docs/adr/0009-scheduling-concurrency-control.md`
+- ADR-016: Idempotência nas Requisições de Criação → `docs/adr/0016-request-idempotency.md`
