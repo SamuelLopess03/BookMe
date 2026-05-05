@@ -1,27 +1,33 @@
-# ADR-0006 — TanStack Router para Roteamento Client-Side
+# ADR-0006 — Frontend: TanStack Router para Roteamento
 
 **Status:** Aceito  
-**Data:** A definir
+**Data:** A definir  
+**Contexto:** Navegação e Roteamento Client-Side
 
 ---
 
 ## Contexto
 
-O frontend é uma SPA e precisa de um router client-side com suporte a TypeScript end-to-end, route loaders e integração com React Query.
+O frontend do **BookMe** é uma Single Page Application (SPA). Precisamos de uma solução de roteamento que ofereça segurança de tipos (Type Safety) total, suporte a parâmetros de busca (Search Params) tipados e integração fluida com o ciclo de vida dos dados.
+
+## Opções consideradas
+
+| Opção | Vantagem | Desvantagem |
+| :--- | :--- | :--- |
+| **React Router v6/v7** | Padrão de mercado; enorme ecossistema | Type safety limitada; exige ferramentas externas para tipar search params |
+| **TanStack Router (escolhido)** | **100% Type-safe**; suporte nativo a Search Params; Route Loaders robustos | Curva de aprendizado inicial maior devido à tipagem rigorosa |
+| **Wouter** | Minimalista e ultra leve | Sem suporte a loaders ou tipagem avançada de rotas |
 
 ## Decisão
 
-TanStack Router pela segurança de tipos completa: URLs, parâmetros de rota e search params são tipados em TypeScript. Route loaders garantem dados disponíveis antes de renderizar.
+Adotar o **TanStack Router** como gerenciador de rotas. A escolha justifica-se pela necessidade de eliminar erros de navegação em tempo de execução. Com o TanStack Router, URLs, parâmetros de rota e `search params` são tratados como código, não como strings.
 
-## Alternativas consideradas
-
-| Opção                           | Vantagem                        | Desvantagem                                   |
-| ------------------------------- | ------------------------------- | --------------------------------------------- |
-| React Router v7                 | Maior adoção, familiar          | Type safety limitada sem configurações extras |
-| **TanStack Router (escolhido)** | Full type-safe, loaders nativos | Mais novo, comunidade menor                   |
+**Recursos críticos utilizados:**
+- **Route Loaders**: Para garantir que os dados necessários (ex: perfil do prestador) comecem a ser carregados antes mesmo do componente renderizar.
+- **Search Params Validation**: Integração com Zod para validar e tipar filtros de busca na agenda (ex: `?date=2024-05-01`).
 
 ## Consequências
 
-- Links e navegações completamente tipados — erros de URL capturados em compile time
-- Integração nativa com TanStack Query para prefetch de dados por rota
-- Curva de aprendizado ligeiramente maior que React Router
+- **Robustez**: Navegar para uma rota inexistente ou passar parâmetros errados causará um erro de compilação, prevenindo links quebrados em produção.
+- **DX Superior**: O desenvolvedor conta com auto-complete total ao criar links ou navegar programaticamente.
+- **UX Otimizada**: Uso de `prefetch` automático ao fazer hover em links, reduzindo a percepção de latência para o usuário final.
