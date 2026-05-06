@@ -2,7 +2,10 @@
   "name": "api",
   "version": "1.0.0",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "lint": "echo 'No lint configured for api'",
+    "typecheck": "echo 'No typecheck configured for api'"
+  },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "pg": "^8.20.0"

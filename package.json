@@ -1,5 +1,8 @@
 {
   "name": "bookme",
   "private": true,
-  "scripts": {}
+  "scripts": {
+    "lint": "echo 'No lint configured yet'",
+    "typecheck": "echo 'No typecheck configured yet'"
+  }
 }
