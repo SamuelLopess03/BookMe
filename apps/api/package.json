@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "lint": "echo 'No lint configured for api'",
-    "typecheck": "echo 'No typecheck configured for api'",
+    "typecheck": "tsc --noEmit",
     "test:integration": "echo 'No integration tests configured yet'",
     "db:migrate": "echo 'No migrations configured yet'"
   },
@@ -13,8 +13,10 @@
     "pg": "^8.20.0"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   }
 }
