@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "lint": "echo 'No lint configured yet'",
-    "typecheck": "echo 'No typecheck configured yet'"
+    "typecheck": "echo 'No typecheck configured yet'",
+    "test:coverage": "echo 'No tests configured yet'",
+    "build": "echo 'No build configured yet'"
   }
 }
