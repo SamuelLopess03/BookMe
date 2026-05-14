@@ -31,7 +31,7 @@ export const tenants = pgTable('tenants', {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 })
 
 export const tenantsRelations = relations(tenants, ({ one, many }) => ({
@@ -69,7 +69,7 @@ export const tenantSettings = pgTable('tenant_settings', {
   appointmentIntervalMinutes: integer('appointment_interval_minutes').notNull().default(0),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 })
 
 export const tenantSettingsRelations = relations(tenantSettings, ({ one }) => ({
@@ -83,7 +83,7 @@ export const tenantSettingsRelations = relations(tenantSettings, ({ one }) => ({
 
 export type Tenant        = typeof tenants.$inferSelect
 export type NewTenant     = typeof tenants.$inferInsert
-export type TenantPublic  = Omit<Tenant, 'passwordHash'>
+export type TenantPublic  = Omit<Tenant, 'passwordHash' | 'deletedAt'>
 
 export type TenantSettings    = typeof tenantSettings.$inferSelect
 export type NewTenantSettings = typeof tenantSettings.$inferInsert
