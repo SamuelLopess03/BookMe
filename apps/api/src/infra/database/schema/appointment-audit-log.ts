@@ -1,24 +1,26 @@
-import { pgTable, uuid, text, timestamp, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, index, foreignKey } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { appointmentStatusEnum, changedByEnum } from './enums'
 import { appointments } from './appointments'
 import { tenants } from './tenants'
 
+/**
+ * Tabela de Auditoria: Registro imutável de mudanças de status.
+ * 
+ * SEGURANÇA: Esta tabela deve ter uma Trigger de banco de dados (PostgreSQL)
+ * para impedir UPDATE e DELETE, garantindo a integridade da trilha.
+ */
 export const appointmentAuditLog = pgTable('appointment_audit_log', {
   id: uuid('id').primaryKey().defaultRandom(),
 
-  appointmentId: uuid('appointment_id')
-    .notNull()
-    .references(() => appointments.id, { onDelete: 'cascade' }),
+  appointmentId: uuid('appointment_id').notNull(),
 
   /**
    * Redundante por design — derivável via appointment_id → appointments.tenant_id.
    * Presente aqui para permitir aplicação de Row-Level Security diretamente
    * nesta tabela sem necessidade de JOIN.
    */
-  tenantId: uuid('tenant_id')
-    .notNull()
-    .references(() => tenants.id),
+  tenantId: uuid('tenant_id').notNull(),
 
   /**
    * Status anterior. Null apenas para o primeiro registro (criação).
@@ -31,10 +33,6 @@ export const appointmentAuditLog = pgTable('appointment_audit_log', {
 
   /**
    * JSON serializado com contexto adicional da transição.
-   * Exemplos:
-   * - { "ip": "201.x.x.x", "userAgent": "Mozilla..." }  (cancelamento pelo cliente)
-   * - { "reason": "cliente solicitou remarcação" }        (cancelamento pelo prestador)
-   * - { "jobId": "bullmq-job-id" }                        (lembrete enviado pelo sistema)
    */
   metadata: text('metadata'),
 
@@ -42,6 +40,16 @@ export const appointmentAuditLog = pgTable('appointment_audit_log', {
 }, (table) => [
   index('audit_log_appointment_id_idx').on(table.appointmentId),
   index('audit_log_tenant_id_idx').on(table.tenantId),
+
+  /**
+   * CHAVE ESTRANGEIRA COMPOSTA (Integridade Multi-tenant):
+   * Garante que o tenant_id do log seja OBRIGATORIAMENTE o mesmo 
+   * tenant_id do agendamento referenciado.
+   */
+  foreignKey({
+    columns: [table.appointmentId, table.tenantId],
+    foreignColumns: [appointments.id, appointments.tenantId],
+  }).onDelete('cascade'),
 ])
 
 export const appointmentAuditLogRelations = relations(appointmentAuditLog, ({ one }) => ({

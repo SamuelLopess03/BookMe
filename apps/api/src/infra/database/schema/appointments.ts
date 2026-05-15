@@ -1,5 +1,5 @@
 import {
-  pgTable, uuid, varchar, text, timestamp, index, uniqueIndex
+  pgTable, uuid, varchar, text, timestamp, index, uniqueIndex, unique, foreignKey
 } from 'drizzle-orm/pg-core'
 import { relations, sql, eq } from 'drizzle-orm'
 import { appointmentStatusEnum, cancelledByEnum } from './enums'
@@ -16,9 +16,7 @@ export const appointments = pgTable('appointments', {
     .references(() => tenants.id),
 
   // ── Dados do serviço ─────────────────────────────────────
-  serviceId: uuid('service_id')
-    .notNull()
-    .references(() => services.id),
+  serviceId: uuid('service_id').notNull(),
 
   // ── Dados do cliente ─────────────────────────────────────
   /**
@@ -115,6 +113,21 @@ export const appointments = pgTable('appointments', {
    * com scheduledAt entre agora+23h e agora+25h.
    */
   index('appointments_reminder_idx').on(table.status, table.scheduledAt),
+
+  /**
+   * Necessário para permitir que a tabela de auditoria faça uma FK composta.
+   * Garante a integridade multi-tenant em nível de banco de dados.
+   */
+  unique('appointments_id_tenant_id_key').on(table.id, table.tenantId),
+
+  /**
+   * CHAVE ESTRANGEIRA COMPOSTA (Integridade Multi-tenant):
+   * Garante que o agendamento use um serviço que pertence ao MESMO tenant.
+   */
+  foreignKey({
+    columns: [table.serviceId, table.tenantId],
+    foreignColumns: [services.id, services.tenantId],
+  }).onDelete('restrict'),
 ])
 
 export const appointmentsRelations = relations(appointments, ({ one, many }) => ({
