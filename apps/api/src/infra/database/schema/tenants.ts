@@ -4,6 +4,7 @@ import { refreshTokens } from './refresh-tokens'
 import { services } from './services'
 import { availabilitySchedules } from './availability-schedules'
 import { availabilityBlocks } from './availability-blocks'
+import { appointments } from './appointments'
 
 // ── Tabela Principal: Tenants ──────────────────────────────
 
@@ -44,10 +45,7 @@ export const tenantsRelations = relations(tenants, ({ one, many }) => ({
   services: many(services),
   availabilitySchedules: many(availabilitySchedules),
   availabilityBlocks:   many(availabilityBlocks),
-  /* 
-    Relações futuras:
-    appointments:         many(appointments),
-  */
+  appointments:         many(appointments),
 }))
 
 // ── Tabela Relacionada: Tenant Settings ────────────────────

@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, integer, timestamp, index, uniqueIndex, unique } from 'drizzle-orm/pg-core'
 import { relations, isNull } from 'drizzle-orm'
 import { tenants } from './tenants'
 
@@ -14,14 +14,11 @@ export const services = pgTable('services', {
 
   /**
    * Duração do serviço em minutos inteiros.
-   * Mínimo: 15 minutos (validado na camada de aplicação).
-   * Usado pelo algoritmo de cálculo de slots para determinar blocos de tempo ocupados.
    */
   durationMinutes: integer('duration_minutes').notNull(),
 
   /**
-   * Preço em centavos. Nulo = serviço sem preço definido (a definir presencialmente).
-   * Ex: R$ 45,00 → 4500
+   * Preço em centavos.
    */
   priceCents: integer('price_cents'),
 
@@ -34,13 +31,23 @@ export const services = pgTable('services', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [
   index('services_tenant_id_idx').on(table.tenantId),
-  /**
-   * Índice parcial: apenas serviços ativos (não deletados).
-   * Melhora a performance de listagem na página pública.
-   */
+  
   index('services_tenant_id_active_idx')
     .on(table.tenantId)
     .where(isNull(table.deletedAt)),
+
+  /**
+   * Garante que o prestador não tenha dois serviços ativos com o mesmo nome.
+   */
+  uniqueIndex('services_tenant_name_unique_idx')
+    .on(table.tenantId, table.name)
+    .where(isNull(table.deletedAt)),
+
+  /**
+   * Necessário para permitir que a tabela de appointments faça uma FK composta.
+   * Garante integridade multi-tenant: o agendamento deve usar um serviço do MESMO tenant.
+   */
+  unique('services_id_tenant_id_key').on(table.id, table.tenantId),
 ])
 
 export const servicesRelations = relations(services, ({ one, many }) => ({
