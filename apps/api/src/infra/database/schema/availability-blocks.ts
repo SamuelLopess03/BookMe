@@ -17,8 +17,8 @@ export const availabilityBlocks = pgTable('availability_blocks', {
   startAt: timestamp('start_at', { withTimezone: true }).notNull(),
 
   /**
-   * Fim do bloqueio (exclusive, padrão de intervalos).
-   * Para bloqueio de dia inteiro: 23:59:59 ou meia-noite do dia seguinte.
+   * Fim do bloqueio (exclusive, padrão de intervalos [start, end)).
+   * Para bloqueio de dia inteiro: meia-noite do dia seguinte (00:00:00).
    */
   endAt: timestamp('end_at', { withTimezone: true }).notNull(),
 
