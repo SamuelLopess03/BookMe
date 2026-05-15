@@ -93,7 +93,7 @@ export const appointments = pgTable('appointments', {
    */
   index('appointments_pending_idx')
     .on(table.tenantId, table.scheduledAt)
-    .where(eq(table.status, 'pending')),
+    .where(sql`status = 'pending'`),
 
   /**
    * Índice para lookup do token de cancelamento.

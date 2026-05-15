@@ -1,5 +1,5 @@
 {
-  "id": "1562d210-163c-4e4a-bdd2-d7ec43873d16",
+  "id": "5934e281-492d-436d-a9e4-ed1d157e2fb3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -852,7 +852,7 @@
             }
           ],
           "isUnique": false,
-          "where": "\"appointments\".\"status\" = $1",
+          "where": "status = 'pending'",
           "concurrently": false,
           "method": "btree",
           "with": {}

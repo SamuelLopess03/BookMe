@@ -2,7 +2,6 @@ CREATE TYPE "public"."appointment_status" AS ENUM('pending', 'confirmed', 'rejec
 CREATE TYPE "public"."cancelled_by" AS ENUM('client', 'tenant', 'system');--> statement-breakpoint
 CREATE TYPE "public"."changed_by" AS ENUM('client', 'tenant', 'system');--> statement-breakpoint
 CREATE TYPE "public"."idempotency_key_status" AS ENUM('processing', 'completed', 'failed');--> statement-breakpoint
-
 CREATE TABLE "tenant_settings" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"tenant_id" uuid NOT NULL,
@@ -127,7 +126,7 @@ CREATE INDEX "avail_blocks_tenant_range_idx" ON "availability_blocks" USING btre
 CREATE INDEX "appointments_tenant_id_idx" ON "appointments" USING btree ("tenant_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "appointments_unique_slot_idx" ON "appointments" USING btree ("tenant_id","scheduled_at") WHERE status NOT IN ('cancelled', 'rejected');--> statement-breakpoint
 CREATE INDEX "appointments_tenant_scheduled_at_idx" ON "appointments" USING btree ("tenant_id","scheduled_at");--> statement-breakpoint
-CREATE INDEX "appointments_pending_idx" ON "appointments" USING btree ("tenant_id","scheduled_at") WHERE "appointments"."status" = $1;--> statement-breakpoint
+CREATE INDEX "appointments_pending_idx" ON "appointments" USING btree ("tenant_id","scheduled_at") WHERE status = 'pending';--> statement-breakpoint
 CREATE INDEX "appointments_cancellation_token_idx" ON "appointments" USING btree ("cancellation_token");--> statement-breakpoint
 CREATE INDEX "appointments_status_idx" ON "appointments" USING btree ("status");--> statement-breakpoint
 CREATE INDEX "appointments_reminder_idx" ON "appointments" USING btree ("status","scheduled_at");--> statement-breakpoint
