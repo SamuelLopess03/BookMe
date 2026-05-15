@@ -2,6 +2,8 @@ import { pgTable, uuid, varchar, text, timestamp, integer } from 'drizzle-orm/pg
 import { relations } from 'drizzle-orm'
 import { refreshTokens } from './refresh-tokens'
 import { services } from './services'
+import { availabilitySchedules } from './availability-schedules'
+import { availabilityBlocks } from './availability-blocks'
 
 // ── Tabela Principal: Tenants ──────────────────────────────
 
@@ -40,10 +42,10 @@ export const tenantsRelations = relations(tenants, ({ one, many }) => ({
   settings: one(tenantSettings),
   refreshTokens: many(refreshTokens),
   services: many(services),
+  availabilitySchedules: many(availabilitySchedules),
+  availabilityBlocks:   many(availabilityBlocks),
   /* 
     Relações futuras:
-    availabilitySchedules: many(availabilitySchedules),
-    availabilityBlocks:   many(availabilityBlocks),
     appointments:         many(appointments),
   */
 }))
