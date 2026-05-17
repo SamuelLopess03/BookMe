@@ -1,8 +1,10 @@
-import { PgTableWithColumns } from 'drizzle-orm/pg-core'
+import { AnyPgTable, PgColumn, PgTransaction } from 'drizzle-orm/pg-core'
 import { eq, sql } from 'drizzle-orm'
 import { DrizzleClient } from './client'
 
-export abstract class BaseRepository<TTable extends PgTableWithColumns<any>> {
+export type QueryClient = DrizzleClient | PgTransaction<any, any, any>
+
+export abstract class BaseRepository<TTable extends AnyPgTable & { tenantId: PgColumn }> {
   constructor(
     protected readonly db: DrizzleClient,
     protected readonly table: TTable,
@@ -11,12 +13,10 @@ export abstract class BaseRepository<TTable extends PgTableWithColumns<any>> {
 
   /**
    * Executa a configuração da variável de sessão para o Row-Level Security (RLS).
-   * Deve ser executado antes de qualquer operação no banco.
-   * Utilizar SET LOCAL garante que o valor é limpo ao fim da transação.
+   * EXIGE um contexto transacional ativo (PgTransaction) para garantir que o SET LOCAL
+   * funcione corretamente e impeça vazamentos de dados entre conexões do pool.
    */
-  protected async setSessionTenantId(
-    tx: { execute: DrizzleClient['execute'] } = this.db
-  ): Promise<void> {
+  protected async setSessionTenantId(tx: PgTransaction<any, any, any>): Promise<void> {
     await tx.execute(
       sql`SET LOCAL app.current_tenant_id = ${this.tenantId}`
     )
@@ -24,13 +24,13 @@ export abstract class BaseRepository<TTable extends PgTableWithColumns<any>> {
 
   /**
    * Retorna a query base com o filtro do tenantId ativo, aplicando a Camada 1 de isolamento.
+   * Aceita um cliente de consulta (que pode ser uma transação ativa) para garantir consistência.
    */
-  protected baseQuery() {
-    const tableWithTenant = this.table as unknown as { tenantId: TTable['tenantId'] }
-    return this.db
+  protected baseQuery(tx: QueryClient = this.db) {
+    return tx
       .select()
-      .from(this.table as any)
-      .where(eq(tableWithTenant.tenantId, this.tenantId))
+      .from(this.table as AnyPgTable)
+      .where(eq(this.table.tenantId, this.tenantId))
   }
 
   /**
