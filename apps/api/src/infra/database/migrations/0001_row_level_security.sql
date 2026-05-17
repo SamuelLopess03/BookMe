@@ -8,20 +8,25 @@ ALTER TABLE availability_blocks    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointment_audit_log  ENABLE ROW LEVEL SECURITY;
 
 -- Política de isolamento por Tenant:
--- Compara o tenant_id da linha com o valor setado na variável de sessão 'app.current_tenant_id'
--- O parâmetro 'true' no current_setting garante que retorne NULL se não estiver setado, evitando erro.
+-- USING: Garante que SELECT e DELETE só retornem/afetem registros do tenant atual.
+-- WITH CHECK: Garante que INSERT e UPDATE não permitam salvar/alterar registros para outro tenant_id.
 
 CREATE POLICY tenant_isolation ON services
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
 
 CREATE POLICY tenant_isolation ON appointments
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
 
 CREATE POLICY tenant_isolation ON availability_schedules
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
 
 CREATE POLICY tenant_isolation ON availability_blocks
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
 
 CREATE POLICY tenant_isolation ON appointment_audit_log
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
