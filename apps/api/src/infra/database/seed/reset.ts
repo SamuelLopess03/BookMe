@@ -32,14 +32,18 @@ async function reset() {
   console.log('Starting database reset...')
 
   try {
-    await db.execute(sql`TRUNCATE TABLE appointment_audit_log RESTART IDENTITY CASCADE`)
-    await db.execute(sql`TRUNCATE TABLE appointments RESTART IDENTITY CASCADE`)
-    await db.execute(sql`TRUNCATE TABLE availability_blocks RESTART IDENTITY CASCADE`)
-    await db.execute(sql`TRUNCATE TABLE availability_schedules RESTART IDENTITY CASCADE`)
-    await db.execute(sql`TRUNCATE TABLE services RESTART IDENTITY CASCADE`)
-    await db.execute(sql`TRUNCATE TABLE tenant_settings RESTART IDENTITY CASCADE`)
-    await db.execute(sql`TRUNCATE TABLE refresh_tokens RESTART IDENTITY CASCADE`)
-    await db.execute(sql`TRUNCATE TABLE tenants RESTART IDENTITY CASCADE`)
+    await db.execute(sql`
+      TRUNCATE TABLE 
+        appointment_audit_log,
+        appointments,
+        availability_blocks,
+        availability_schedules,
+        services,
+        tenant_settings,
+        refresh_tokens,
+        tenants
+      RESTART IDENTITY CASCADE
+    `)
 
     console.log('Database tables truncated and reset successfully!')
     process.exit(0)
