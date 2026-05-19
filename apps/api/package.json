@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "echo 'No lint configured for api'",
     "typecheck": "tsc --noEmit",
-    "test:integration": "echo 'No integration tests configured yet'",
+    "test:integration": "vitest run tests/integration",
     "db:generate": "drizzle-kit generate",
     "db:migrate":  "drizzle-kit migrate",
     "db:studio":   "drizzle-kit studio",
@@ -22,6 +22,7 @@
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.0.5"
   }
 }

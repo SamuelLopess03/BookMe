@@ -18,7 +18,7 @@ export abstract class BaseRepository<TTable extends AnyPgTable & { tenantId: PgC
    */
   protected async setSessionTenantId(tx: PgTransaction<any, any, any>): Promise<void> {
     await tx.execute(
-      sql`SET LOCAL app.current_tenant_id = ${this.tenantId}`
+      sql`SELECT set_config('app.current_tenant_id', ${this.tenantId}, true)`
     )
   }
 
