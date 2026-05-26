@@ -87,8 +87,14 @@ describe("BaseRepository Integration Tests (Multi-Tenant Isolation)", () => {
       await db.execute(
         sql`CREATE ROLE bookme_test_user WITH LOGIN PASSWORD 'bookme_test_pass'`,
       );
-    } catch (e) {
-      // Ignora se o usuário já existe
+    } catch (error: unknown) {
+      const pgError = error as { code?: string };
+      if (pgError?.code === "42710") {
+        // Role already exists, ignora.
+      } else {
+        console.error("Erro ao criar role de teste:", error);
+        throw error;
+      }
     }
 
     await db.execute(sql`GRANT USAGE ON SCHEMA public TO bookme_test_user`);
