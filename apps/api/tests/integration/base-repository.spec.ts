@@ -88,9 +88,10 @@ describe("BaseRepository Integration Tests (Multi-Tenant Isolation)", () => {
         sql`CREATE ROLE bookme_test_user WITH LOGIN PASSWORD 'bookme_test_pass'`,
       );
     } catch (error: unknown) {
-      const pgError = error as { code?: string };
-      if (pgError?.code === "42710") {
+      const pgError = error as { cause?: { code?: string } };
+      if (pgError?.cause?.code === "42710") {
         // Role already exists, ignora.
+        console.log("Role bookme_test_user already exists, continuing...");
       } else {
         console.error("Erro ao criar role de teste:", error);
         throw error;
