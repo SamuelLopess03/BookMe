@@ -5,6 +5,7 @@ import {
   timestamp,
   jsonb,
   index,
+  check,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import { idempotencyKeyStatusEnum } from "./enums";
@@ -43,6 +44,8 @@ export const idempotencyKeys = pgTable(
      * Resposta JSON da requisição original. Armazenado apenas quando o
      * status é "completed" – permite que um request idempotente retorne o
      * mesmo payload sem refazer a lógica de negócio.
+     *
+     * Observação: o banco valida essa regra com uma CHECK constraint.
      */
     response: jsonb("response"),
 
@@ -69,6 +72,17 @@ export const idempotencyKeys = pgTable(
     index("idempotency_keys_expires_at_idx")
       .on(table.expiresAt)
       .where(sql`status = 'completed'`),
+
+    check(
+      "idempotency_keys_status_response_chk",
+      sql`
+        (
+          status = 'completed' AND response IS NOT NULL
+        ) OR (
+          status IN ('processing', 'failed') AND response IS NULL
+        )
+      `,
+    ),
   ],
 );
 
