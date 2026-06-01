@@ -8,6 +8,7 @@ import {
   uniqueIndex,
   unique,
   foreignKey,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
 import { relations, sql, eq } from "drizzle-orm";
 import { appointmentStatusEnum, cancelledByEnum } from "./enums";
@@ -148,8 +149,14 @@ export const appointments = pgTable(
       columns: [table.serviceId, table.tenantId],
       foreignColumns: [services.id, services.tenantId],
     }).onDelete("restrict"),
+
+    pgPolicy("tenant_isolation", {
+      for: "all",
+      using: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+      withCheck: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+    }),
   ],
-);
+).enableRLS();
 
 export const appointmentsRelations = relations(
   appointments,

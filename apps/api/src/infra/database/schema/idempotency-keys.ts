@@ -6,6 +6,8 @@ import {
   jsonb,
   index,
   check,
+  unique,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 import { idempotencyKeyStatusEnum } from "./enums";
@@ -15,10 +17,11 @@ export const idempotencyKeys = pgTable(
   "idempotency_keys",
   {
     /**
-     * Chave única gerada pelo cliente (UUID v4 ou v7). É a primary key
-     * da tabela, pois não precisamos de um surrogate id adicional.
+     * Chave de idempotência gerada pelo cliente (UUID v4 ou v7).
+     * A unicidade é composta com `tenantId` para permitir a mesma key em
+     * tenants diferentes sem colisão global.
      */
-    key: uuid("key").primaryKey(),
+    key: uuid("key").notNull(),
 
     /**
      * Tenant ao qual a requisição pertence. Necessário para o escopo de
@@ -30,8 +33,8 @@ export const idempotencyKeys = pgTable(
 
     /**
      * Endpoint da API que está sendo protegido (ex.: "/api/v1/agendamentos").
-     * Mantido para permitir que o mesmo tenant tenha diferentes chaves por
-     * endpoint, caso necessário.
+     * Mantido como contexto da requisição para auditoria e resposta, mas não
+     * faz parte da unicidade da chave.
      */
     endpoint: varchar("endpoint", { length: 200 }).notNull(),
 
@@ -73,6 +76,15 @@ export const idempotencyKeys = pgTable(
       .on(table.expiresAt)
       .where(sql`status = 'completed'`),
 
+    /**
+     * A identidade da chave é tenant + key. O endpoint permanece como dado
+     * de contexto da requisição, não como parte da unicidade.
+     */
+    unique("idempotency_keys_tenant_id_key_unique").on(
+      table.tenantId,
+      table.key,
+    ),
+
     check(
       "idempotency_keys_status_response_chk",
       sql`
@@ -83,8 +95,14 @@ export const idempotencyKeys = pgTable(
         )
       `,
     ),
+
+    pgPolicy("tenant_isolation", {
+      for: "all",
+      using: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+      withCheck: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+    }),
   ],
-);
+).enableRLS();
 
 export const idempotencyKeysRelations = relations(
   idempotencyKeys,

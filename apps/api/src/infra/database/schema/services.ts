@@ -7,8 +7,9 @@ import {
   index,
   uniqueIndex,
   unique,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { relations, isNull } from "drizzle-orm";
+import { relations, isNull, sql } from "drizzle-orm";
 import { tenants } from "./tenants";
 
 export const services = pgTable(
@@ -65,8 +66,14 @@ export const services = pgTable(
      * Garante integridade multi-tenant: o agendamento deve usar um serviço do MESMO tenant.
      */
     unique("services_id_tenant_id_key").on(table.id, table.tenantId),
+
+    pgPolicy("tenant_isolation", {
+      for: "all",
+      using: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+      withCheck: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+    }),
   ],
-);
+).enableRLS();
 
 export const servicesRelations = relations(services, ({ one, many }) => ({
   tenant: one(tenants, {

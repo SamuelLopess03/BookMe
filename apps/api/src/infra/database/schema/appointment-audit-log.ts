@@ -5,8 +5,9 @@ import {
   timestamp,
   index,
   foreignKey,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { appointmentStatusEnum, changedByEnum } from "./enums";
 import { appointments } from "./appointments";
 import { tenants } from "./tenants";
@@ -62,8 +63,14 @@ export const appointmentAuditLog = pgTable(
       columns: [table.appointmentId, table.tenantId],
       foreignColumns: [appointments.id, appointments.tenantId],
     }).onDelete("cascade"),
+
+    pgPolicy("tenant_isolation", {
+      for: "all",
+      using: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+      withCheck: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+    }),
   ],
-);
+).enableRLS();
 
 export const appointmentAuditLogRelations = relations(
   appointmentAuditLog,

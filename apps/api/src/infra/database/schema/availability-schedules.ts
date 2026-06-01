@@ -6,8 +6,9 @@ import {
   timestamp,
   index,
   unique,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { tenants } from "./tenants";
 
 export const availabilitySchedules = pgTable(
@@ -60,9 +61,16 @@ export const availabilitySchedules = pgTable(
       table.dayOfWeek,
       table.startTime,
     ),
+
     index("avail_schedules_tenant_day_idx").on(table.tenantId, table.dayOfWeek),
+
+    pgPolicy("tenant_isolation", {
+      for: "all",
+      using: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+      withCheck: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+    }),
   ],
-);
+).enableRLS();
 
 export const availabilitySchedulesRelations = relations(
   availabilitySchedules,
