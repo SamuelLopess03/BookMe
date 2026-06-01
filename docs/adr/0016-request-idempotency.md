@@ -46,7 +46,7 @@ O handler verifica a key antes de processar:
 
 ```sql
 CREATE TABLE idempotency_keys (
-  key         UUID PRIMARY KEY,
+  key         UUID NOT NULL,
   tenant_id   UUID NOT NULL REFERENCES tenants(id),
   endpoint    VARCHAR(200) NOT NULL,
   status      VARCHAR(20) NOT NULL,      -- 'processing' | 'completed' | 'failed'
@@ -54,6 +54,9 @@ CREATE TABLE idempotency_keys (
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   expires_at  TIMESTAMPTZ DEFAULT NOW() + INTERVAL '24 hours'
 );
+
+ALTER TABLE idempotency_keys
+  ADD CONSTRAINT idempotency_keys_tenant_id_key_unique UNIQUE (tenant_id, key);
 
 CREATE INDEX ON idempotency_keys (expires_at) WHERE status = 'completed';
 ```
