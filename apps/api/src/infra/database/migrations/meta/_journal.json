@@ -15,6 +15,34 @@
       "when": 1778880041649,
       "tag": "0001_row_level_security",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780257172851,
+      "tag": "0002_add_entity_idempotency_keys",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1780300000000,
+      "tag": "0003_enable_rls_idempotency_keys",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1780266300612,
+      "tag": "0004_add_idempotency_keys_status_response_check",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780314515971,
+      "tag": "0005_idempotency_keys_tenant_pk",
+      "breakpoints": true
     }
   ]
 }

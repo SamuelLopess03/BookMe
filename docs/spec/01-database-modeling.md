@@ -711,21 +711,21 @@ export type NewAppointmentAuditLog = typeof appointmentAuditLog.$inferInsert
 ```typescript
 // apps/api/src/infra/database/schema/idempotency-keys.ts
 
-import { pgTable, uuid, varchar, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, timestamp, jsonb, index, primaryKey, pgPolicy } from 'drizzle-orm/pg-core'
 import { relations, sql } from 'drizzle-orm'
 import { idempotencyKeyStatusEnum } from './enums'
 
 export const idempotencyKeys = pgTable('idempotency_keys', {
-  key: uuid('key').primaryKey(),
+  key: uuid('key').notNull(),
 
   tenantId: uuid('tenant_id')
     .notNull()
     .references(() => tenants.id, { onDelete: 'cascade' }),
 
   endpoint: varchar('endpoint', { length: 200 }).notNull(),
-  
+
   status: idempotencyKeyStatusEnum('status').notNull(),
-  
+
   response: jsonb('response'),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -737,7 +737,20 @@ export const idempotencyKeys = pgTable('idempotency_keys', {
   expiresAtIdx: index('idempotency_keys_expires_at_idx')
     .on(table.expiresAt)
     .where(sql`status = 'completed'`),
-}))
+
+  /**
+   * RLS declarativo para manter o snapshot e o schema alinhados.
+   */
+  pgPolicy('tenant_isolation', {
+    for: 'all',
+    using: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+    withCheck: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+  }),
+  primaryKey({
+    name: 'idempotency_keys_tenant_id_key_pk',
+    columns: [table.tenantId, table.key],
+  }),
+})).enableRLS()
 
 export const idempotencyKeysRelations = relations(idempotencyKeys, ({ one }) => ({
   tenant: one(tenants, {

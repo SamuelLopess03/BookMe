@@ -46,13 +46,14 @@ O handler verifica a key antes de processar:
 
 ```sql
 CREATE TABLE idempotency_keys (
-  key         UUID PRIMARY KEY,
+  key         UUID NOT NULL,
   tenant_id   UUID NOT NULL REFERENCES tenants(id),
   endpoint    VARCHAR(200) NOT NULL,
   status      VARCHAR(20) NOT NULL,      -- 'processing' | 'completed' | 'failed'
   response    JSONB,                     -- Response body para replay
   created_at  TIMESTAMPTZ DEFAULT NOW(),
-  expires_at  TIMESTAMPTZ DEFAULT NOW() + INTERVAL '24 hours'
+  expires_at  TIMESTAMPTZ DEFAULT NOW() + INTERVAL '24 hours',
+  PRIMARY KEY (tenant_id, key)
 );
 
 CREATE INDEX ON idempotency_keys (expires_at) WHERE status = 'completed';
