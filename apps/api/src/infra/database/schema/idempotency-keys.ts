@@ -6,7 +6,7 @@ import {
   jsonb,
   index,
   check,
-  unique,
+  primaryKey,
   pgPolicy,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
@@ -18,8 +18,7 @@ export const idempotencyKeys = pgTable(
   {
     /**
      * Chave de idempotência gerada pelo cliente (UUID v4 ou v7).
-     * A unicidade é composta com `tenantId` para permitir a mesma key em
-     * tenants diferentes sem colisão global.
+     * A identidade da linha é composta com `tenantId` na primary key.
      */
     key: uuid("key").notNull(),
 
@@ -68,6 +67,15 @@ export const idempotencyKeys = pgTable(
   },
   (table) => [
     /**
+     * PK composta para permitir a mesma key em tenants diferentes sem perder
+     * a identificação única da linha.
+     */
+    primaryKey({
+      name: "idempotency_keys_tenant_id_key_pk",
+      columns: [table.tenantId, table.key],
+    }),
+
+    /**
      * Índice parcial que mantém apenas chaves completadas. Isso permite que o
      * job de limpeza (executado diariamente via BullMQ) escaneie um conjunto
      * pequeno e constante de linhas.
@@ -75,15 +83,6 @@ export const idempotencyKeys = pgTable(
     index("idempotency_keys_expires_at_idx")
       .on(table.expiresAt)
       .where(sql`status = 'completed'`),
-
-    /**
-     * A identidade da chave é tenant + key. O endpoint permanece como dado
-     * de contexto da requisição, não como parte da unicidade.
-     */
-    unique("idempotency_keys_tenant_id_key_unique").on(
-      table.tenantId,
-      table.key,
-    ),
 
     check(
       "idempotency_keys_status_response_chk",

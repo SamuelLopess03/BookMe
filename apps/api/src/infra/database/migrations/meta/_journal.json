@@ -41,7 +41,7 @@
       "idx": 5,
       "version": "7",
       "when": 1780314515971,
-      "tag": "0005_idempotency_keys_tenant_unique",
+      "tag": "0005_idempotency_keys_tenant_pk",
       "breakpoints": true
     }
   ]

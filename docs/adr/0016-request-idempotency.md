@@ -52,11 +52,9 @@ CREATE TABLE idempotency_keys (
   status      VARCHAR(20) NOT NULL,      -- 'processing' | 'completed' | 'failed'
   response    JSONB,                     -- Response body para replay
   created_at  TIMESTAMPTZ DEFAULT NOW(),
-  expires_at  TIMESTAMPTZ DEFAULT NOW() + INTERVAL '24 hours'
+  expires_at  TIMESTAMPTZ DEFAULT NOW() + INTERVAL '24 hours',
+  PRIMARY KEY (tenant_id, key)
 );
-
-ALTER TABLE idempotency_keys
-  ADD CONSTRAINT idempotency_keys_tenant_id_key_unique UNIQUE (tenant_id, key);
 
 CREATE INDEX ON idempotency_keys (expires_at) WHERE status = 'completed';
 ```

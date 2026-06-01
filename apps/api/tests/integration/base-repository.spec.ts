@@ -9,6 +9,25 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../../src/infra/database/schema";
 import path from "path";
 
+function getPostgresErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null) {
+    return undefined;
+  }
+
+  const maybeError = error as { cause?: unknown; code?: unknown };
+  const cause = maybeError.cause as { code?: unknown } | undefined;
+
+  if (typeof cause?.code === "string") {
+    return cause.code;
+  }
+
+  if (typeof maybeError.code === "string") {
+    return maybeError.code;
+  }
+
+  return undefined;
+}
+
 class ServiceRepository extends BaseRepository<typeof services> {
   constructor(dbClient: any, tenantId: string) {
     super(dbClient, services, tenantId);
@@ -88,8 +107,8 @@ describe("BaseRepository Integration Tests (Multi-Tenant Isolation)", () => {
         sql`CREATE ROLE bookme_test_user WITH LOGIN PASSWORD 'bookme_test_pass'`,
       );
     } catch (error: unknown) {
-      const pgError = error as { cause?: { code?: string } };
-      if (pgError?.cause?.code === "42710") {
+      const pgErrorCode = getPostgresErrorCode(error);
+      if (pgErrorCode === "42710") {
         // Role already exists, ignora.
         console.log("Role bookme_test_user already exists, continuing...");
       } else {

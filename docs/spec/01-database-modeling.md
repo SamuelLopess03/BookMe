@@ -711,7 +711,7 @@ export type NewAppointmentAuditLog = typeof appointmentAuditLog.$inferInsert
 ```typescript
 // apps/api/src/infra/database/schema/idempotency-keys.ts
 
-import { pgTable, uuid, varchar, timestamp, jsonb, index, unique, pgPolicy } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, varchar, timestamp, jsonb, index, primaryKey, pgPolicy } from 'drizzle-orm/pg-core'
 import { relations, sql } from 'drizzle-orm'
 import { idempotencyKeyStatusEnum } from './enums'
 
@@ -739,21 +739,16 @@ export const idempotencyKeys = pgTable('idempotency_keys', {
     .where(sql`status = 'completed'`),
 
   /**
-   * Garante que a mesma key possa ser reutilizada em tenants diferentes sem
-   * colisão global.
-   */
-  unique('idempotency_keys_tenant_id_key_unique').on(
-    table.tenantId,
-    table.key,
-  ),
-
-  /**
    * RLS declarativo para manter o snapshot e o schema alinhados.
    */
   pgPolicy('tenant_isolation', {
     for: 'all',
     using: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
     withCheck: sql`tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid`,
+  }),
+  primaryKey({
+    name: 'idempotency_keys_tenant_id_key_pk',
+    columns: [table.tenantId, table.key],
   }),
 })).enableRLS()
 

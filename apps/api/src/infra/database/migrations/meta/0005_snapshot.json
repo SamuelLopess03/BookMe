@@ -1211,17 +1211,16 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "idempotency_keys_tenant_id_key_unique": {
-          "name": "idempotency_keys_tenant_id_key_unique",
-          "nullsNotDistinct": false,
+      "compositePrimaryKeys": {
+        "idempotency_keys_tenant_id_key_pk": {
+          "name": "idempotency_keys_tenant_id_key_pk",
           "columns": [
             "tenant_id",
             "key"
           ]
         }
       },
+      "uniqueConstraints": {},
       "policies": {
         "tenant_isolation": {
           "name": "tenant_isolation",
